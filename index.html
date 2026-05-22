@@ -1,0 +1,409 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DompetKu | Jejak Finansialku</title>
+    
+    <!-- FontAwesome Icon CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <!-- Google Fonts: Inter (labels), Outfit (brand/display/headings), JetBrains Mono (monospaced figures) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;650;700;800&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+      }
+      .brand-font {
+        font-family: 'Outfit', sans-serif;
+      }
+      .mono-font {
+        font-family: 'JetBrains Mono', monospace;
+      }
+    </style>
+  </head>
+  <body class="bg-slate-50 text-slate-800 min-h-screen selection:bg-indigo-500 selection:text-white">
+    
+    <!-- LOADING BAR STATE -->
+    <div id="loading-screen" class="fixed inset-0 bg-slate-50 flex flex-col items-center justify-center z-50">
+      <div class="w-16 h-16 bg-white shadow-xl shadow-slate-100 border border-slate-100 rounded-3xl flex items-center justify-center mb-4 transition-transform duration-300 animate-pulse">
+        <i class="fa-solid fa-cookie-bite fa-spin text-2xl text-indigo-600"></i>
+      </div>
+      <p class="brand-font text-sm font-semibold text-slate-650 tracking-wide">Menyelaraskan Akun...</p>
+      <div class="w-32 bg-slate-200 h-1 rounded-full mt-3 overflow-hidden">
+        <div class="bg-indigo-600 h-full animate-infinite-loading w-1/2 rounded-full"></div>
+      </div>
+    </div>
+
+    <!-- SIGN OUT / WELCOME STATE -->
+    <div id="auth-screen" class="hidden min-h-screen flex items-center justify-center px-4 py-12 bg-slate-50">
+      <div class="w-full max-w-md bg-white p-8 md:p-10 rounded-[32px] border border-slate-100 shadow-2xl text-center relative overflow-hidden">
+        <div class="absolute -right-16 -top-16 w-36 h-36 bg-indigo-500/10 rounded-full blur-2xl"></div>
+        <div class="absolute -left-16 -bottom-16 w-36 h-36 bg-emerald-500/5 rounded-full blur-2xl"></div>
+
+        <div class="flex flex-col items-center mb-8 relative z-10">
+          <span class="flex items-center justify-center bg-gradient-to-tr from-indigo-650 to-indigo-500 text-white w-16 h-16 rounded-2xl shadow-xl shadow-indigo-650/20 mb-4 hover:scale-105 transition-all duration-300">
+            <i class="fa-solid fa-vault text-2xl"></i>
+          </span>
+          <h1 class="brand-font text-3xl font-extrabold text-slate-900 tracking-tight">DompetKu</h1>
+          <p class="text-xs text-indigo-600 font-bold mt-1.5 uppercase tracking-widest font-mono">Jejak Finansialku</p>
+        </div>
+        
+        <div class="space-y-4 my-6 py-6 border-y border-slate-100 text-left relative z-10">
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-xl bg-indigo-55 bg-indigo-50/50 text-indigo-650 flex items-center justify-center border border-indigo-100">
+              <i class="fa-solid fa-shield-halved"></i>
+            </span>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Bank-level Cloud Security</p>
+              <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Data pengeluaran dan pendapatan disinkronkan secara aman dan terenkripsi menggunakan Firebase Cloud Firestore.</p>
+            </div>
+          </div>
+          <div class="flex gap-4">
+            <span class="flex-shrink-0 w-10 h-10 rounded-xl bg-emerald-50/50 text-emerald-650 flex items-center justify-center border border-emerald-100">
+              <i class="fa-solid fa-chart-pie"></i>
+            </span>
+            <div>
+              <p class="text-xs font-bold text-slate-800">Visualisasi Pintar</p>
+              <p class="text-[11px] text-slate-400 mt-0.5 leading-relaxed">Pantau dashboard laporan keuangan Anda secara real-time dari perangkat apa pun.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3 relative z-10">
+          <button id="login-btn" class="w-full bg-slate-900 hover:bg-indigo-950 text-white font-semibold py-4 px-6 rounded-2xl text-sm transition-all duration-300 shadow-lg shadow-slate-900/10 cursor-pointer flex items-center justify-center gap-3 active:scale-95 group">
+            <i class="fa-brands fa-google text-base group-hover:rotate-12 transition-transform"></i> Masuk dengan Akun Google
+          </button>
+          <p class="text-[10px] text-slate-450 leading-relaxed font-medium">
+            Tidak ada biaya pendaftaran. Dengan masuk, Anda menyetujui sinkronisasi awan personal Anda.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SIGNED IN / MAIN TRACKER STATE -->
+    <div id="app-screen" class="hidden">
+      <!-- Container Utama: responsive stretch with custom widths -->
+      <div id="app-container" class="max-w-6xl mx-auto px-4 py-8 md:py-12">
+        
+        <!-- HEADER APLIKASI -->
+        <header class="mb-10 text-center md:text-left flex flex-col md:flex-row md:items-center md:justify-between gap-6 pb-6 border-b border-slate-200/50">
+          <div class="flex items-center justify-between w-full md:w-auto">
+            <div class="flex items-center gap-3">
+              <span class="flex items-center justify-center bg-gradient-to-tr from-slate-900 via-slate-850 to-indigo-950 text-white w-12 h-12 rounded-2xl shadow-xl shadow-slate-950/15">
+                <i class="fa-solid fa-vault text-xl"></i>
+              </span>
+              <div>
+                <h1 class="brand-font text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">DompetKu</h1>
+                <p class="text-[10px] text-indigo-600 font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-1">
+                  <span class="w-1.5 h-1.5 bg-indigo-500 rounded-full inline-block animate-pulse"></span> Jejak Finansialku
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          <!-- User Profile & Sign Out Bar in Header -->
+          <div class="flex items-center justify-between md:justify-end gap-3.5 bg-white border border-slate-100 py-2.5 px-4 rounded-2xl shadow-sm hover:shadow transition-all duration-300">
+            <div class="flex items-center gap-3 min-w-0 text-left">
+              <img id="user-avatar" src="" alt="avatar" class="w-9 h-9 rounded-xl bg-slate-100 object-cover flex-shrink-0 ring-2 ring-indigo-50" referrerpolicy="no-referrer" />
+              <div class="min-w-0">
+                <p id="user-name" class="brand-font text-xs font-bold text-slate-755 truncate max-w-[140px]">User</p>
+                <div id="today-date" class="text-[9px] text-slate-400 font-bold uppercase tracking-wider font-mono">Loading Date...</div>
+              </div>
+            </div>
+            <div class="w-[1px] h-6 bg-slate-150"></div>
+            <button id="logout-btn" class="p-2 text-slate-405 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all duration-200" title="Keluar">
+              <i class="fa-solid fa-power-off text-sm"></i>
+            </button>
+          </div>
+        </header>
+
+        <!-- MOBILE VIEW SWITCHER PILL (Only visible on screens < md) -->
+        <div id="mobile-tab-bar" class="md:hidden mb-6 p-1 bg-slate-100/80 border border-slate-250/50 rounded-2xl flex relative z-10 transition-all duration-300">
+          <button id="mobile-tab-dashboard" class="flex-1 py-3 text-xs font-bold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-chart-line"></i> Dashboard
+          </button>
+          <button id="mobile-tab-form" class="flex-1 py-3 text-xs font-bold rounded-xl text-slate-505 hover:text-slate-800 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-pen-to-square"></i> Catat Transaksi
+          </button>
+        </div>
+
+        <!-- SPLIT MAIN CONTENT LAYOUT (SPLIT 2 COLUMNS FOR TABLET & DESKTOP) -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-8 items-start">
+          
+          <!-- LEFT COLUMN (md:col-span-12 lg:col-span-4 / col-span-5): STICKY FORM CONTAINER -->
+          <!-- We want this left side sticky to form an premium visual side widget -->
+          <aside id="aside-panel" class="md:col-span-5 lg:col-span-4 md:sticky md:top-8 space-y-6">
+            
+            <section id="form-section" class="bg-white p-6 rounded-3xl border border-slate-150/45 shadow-lg relative overflow-hidden transition-all duration-300 hover:border-slate-200/80">
+              <!-- Top ambient strip -->
+              <div class="absolute top-0 left-0 right-0 h-[4px] bg-gradient-to-r from-indigo-500 via-indigo-600 to-emerald-500"></div>
+
+              <div class="flex items-center gap-2.5 mb-6">
+                <span class="w-2.5 h-6 bg-indigo-650 rounded-full inline-block"></span>
+                <h2 class="brand-font text-lg font-bold text-slate-900">Catat Transaksi</h2>
+              </div>
+
+              <form id="transaction-form" class="space-y-5">
+                <!-- Hidden Input untuk ID Transaksi saat Edit -->
+                <input type="hidden" id="transaction-id" value="" />
+
+                <!-- Tipe Transaksi (Pemasukan / Pengeluaran) -->
+                <div>
+                  <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2.5">Jenis Aliran Dana</label>
+                  <div class="grid grid-cols-2 gap-3.5">
+                    
+                    <label class="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border border-slate-150 cursor-pointer transition-all hover:bg-slate-50/50 [&:has(input:checked)]:border-emerald-500 [&:has(input:checked)]:bg-emerald-50/20 group">
+                      <input type="radio" id="type-income" name="transaction-type" value="income" class="sr-only" />
+                      <i class="fa-solid fa-arrow-down-long text-emerald-500 group-hover:scale-110 transition-transform"></i>
+                      <span class="font-bold text-xs text-slate-605 group-has-[input:checked]:text-emerald-700">Pemasukan</span>
+                    </label>
+
+                    <label class="flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl border border-slate-150 cursor-pointer transition-all hover:bg-slate-50/50 [&:has(input:checked)]:border-rose-500 [&:has(input:checked)]:bg-rose-50/20 group">
+                      <input type="radio" id="type-expense" name="transaction-type" value="expense" class="sr-only" checked />
+                      <i class="fa-solid fa-arrow-up-long text-rose-500 group-hover:scale-110 transition-transform"></i>
+                      <span class="font-bold text-xs text-slate-605 group-has-[input:checked]:text-rose-700">Pengeluaran</span>
+                    </label>
+
+                  </div>
+                </div>
+
+                <!-- Kategori & Tanggal Grid (Responsive stacking) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-1 gap-4">
+                  
+                  <!-- Kategori selector -->
+                  <div>
+                    <label for="transaction-category" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kategori</label>
+                    <div class="relative">
+                      <select id="transaction-category" class="w-full py-3.5 px-4 bg-slate-50/55 border border-slate-150 rounded-xl font-semibold text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all appearance-none cursor-pointer" required>
+                        <option value="" disabled selected>Pilih Kategori</option>
+                      </select>
+                      <div class="absolute inset-y-0 right-0 flex items-center pr-3.5 pointer-events-none text-slate-400">
+                        <i class="fa-solid fa-angle-down text-xs"></i>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tanggal selector -->
+                  <div>
+                    <label for="transaction-date" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Tanggal Mutasi</label>
+                    <div class="relative">
+                      <input type="date" id="transaction-date" class="w-full py-3.5 px-4 bg-slate-50/55 border border-slate-150 rounded-xl font-semibold text-xs text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all cursor-pointer" required />
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Nominal & Keterangan -->
+                <div class="grid grid-cols-1 gap-4">
+                  
+                  <!-- Nominal (Angka) -->
+                  <div>
+                    <label for="transaction-amount" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nominal Uang</label>
+                    <div class="relative">
+                      <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                        <span class="text-xs font-extrabold text-slate-405 border-r border-slate-200/80 pr-2 mr-1">IDR</span>
+                      </div>
+                      <input type="number" id="transaction-amount" placeholder="50.000" min="1" class="mono-font w-full pl-16 pr-4 py-3.5 bg-slate-50/55 border border-slate-150 rounded-xl font-bold text-sm text-slate-805 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" required />
+                    </div>
+                  </div>
+
+                  <!-- Keterangan (Opsional) -->
+                  <div>
+                    <label for="transaction-description" class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Catatan Ringkas <span class="text-[10px] text-slate-350 lowercase font-normal">(opsional)</span></label>
+                    <input type="text" id="transaction-description" placeholder="Beli bakso rudal, bayar kosan" class="w-full py-3.5 px-4 bg-slate-50/55 border border-slate-150 rounded-xl font-medium text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" />
+                  </div>
+
+                </div>
+
+                <!-- Aksi Tombol -->
+                <div class="flex flex-col gap-2.5 pt-1">
+                  <button type="submit" id="submit-btn" class="w-full bg-slate-900 border border-slate-900 text-white font-semibold py-3.5 px-6 rounded-xl text-xs tracking-wide uppercase transition-all duration-200 hover:bg-indigo-950 hover:border-indigo-950 focus:ring-2 focus:ring-indigo-500/35 cursor-pointer flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> <span>Simpan Transaksi</span>
+                  </button>
+                  <button type="button" id="cancel-btn" class="w-full bg-slate-100 border border-slate-150 text-slate-600 font-semibold py-3 px-6 rounded-xl text-xs uppercase tracking-wide transition-all duration-200 hover:bg-slate-200 hover:text-slate-800 cursor-pointer flex items-center justify-center hidden">
+                    Batal Ubah
+                  </button>
+                </div>
+
+              </form>
+            </section>
+
+          </aside>
+
+          <!-- RIGHT COLUMN (md:col-span-12 lg:col-span-8 / col-span-7): DASHBOARD METRICS & MUTATIONS -->
+          <main id="main-panel" class="md:col-span-7 lg:col-span-8 space-y-6">
+            
+            <!-- DASHBOARD RINGKASAN (METRIK UTAMA) -->
+            <div class="flex items-center justify-between select-none -mb-2">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+                <span class="text-[11px] font-bold text-slate-400 tracking-wider uppercase">Ringkasan Finansial</span>
+              </div>
+              <button id="download-pdf-btn" class="flex items-center gap-2 px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200/80 hover:border-slate-300 rounded-xl shadow-xs text-[10px] font-bold text-slate-650 hover:text-slate-800 transition-all duration-200 cursor-pointer">
+                <i class="fa-solid fa-file-pdf text-rose-500 text-xs"></i> Unduh Laporan PDF
+              </button>
+            </div>
+
+            <!-- Tiga kartu berjajar rapi kesamping menggunakan grid responsive -->
+            <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
+              
+              <!-- Premium Kartu Total Saldo (High-light design) -->
+              <div id="balance-card" class="relative overflow-hidden bg-gradient-to-br from-indigo-950 via-slate-900 to-indigo-900 text-white p-6 rounded-3xl shadow-lg shadow-indigo-950/20 border-0 flex flex-col justify-between min-h-[160px] transition-all duration-300 hover:scale-[1.01] hover:shadow-xl sm:col-span-2 lg:col-span-1">
+                <!-- Glowing blob in background -->
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl pointer-events-none"></div>
+                <div class="absolute -left-10 -bottom-10 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl pointer-events-none"></div>
+                
+                <div class="flex items-center justify-between z-10 w-full">
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm flex-shrink-0">
+                      <i id="balance-icon" class="fa-solid fa-wallet text-sm text-indigo-300"></i>
+                    </div>
+                    <p class="text-[10px] font-bold text-indigo-200/90 tracking-widest uppercase truncate">Total Saldo</p>
+                  </div>
+                  <!-- Mini Credit Card Chip logo to emulate luxurious bank credit cards -->
+                  <div class="flex items-center gap-1 opacity-70 flex-shrink-0">
+                    <i class="fa-solid fa-wifi text-[10px] rotate-90"></i>
+                    <div class="w-5 h-3.5 bg-amber-400/80 rounded-[3px]"></div>
+                  </div>
+                </div>
+                
+                <div class="mt-4 z-10 w-full min-w-0">
+                  <h3 id="total-balance" class="mono-font text-2xl sm:text-3xl lg:text-2xl xl:text-3xl font-extrabold tracking-tight text-white select-all break-all leading-tight">Rp 0</h3>
+                </div>
+              </div>
+
+              <!-- Kartu Pemasukan -->
+              <div class="bg-white p-5 rounded-2xl border border-slate-150/45 shadow-md flex items-center gap-4 transition-all duration-300 hover:shadow-lg hover:border-slate-200/80 min-w-0">
+                <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center flex-shrink-0 border border-emerald-100 animate-fade-in">
+                  <i class="fa-solid fa-circle-chevron-down text-[20px]"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 truncate">Pemasukan</p>
+                  <h3 id="total-income" class="mono-font text-base sm:text-lg lg:text-base xl:text-lg font-bold text-emerald-600 tracking-tight break-all leading-snug">Rp 0</h3>
+                </div>
+              </div>
+
+              <!-- Kartu Pengeluaran -->
+              <div class="bg-white p-5 rounded-2xl border border-slate-150/45 shadow-md flex items-center gap-4 transition-all duration-300 hover:shadow-lg hover:border-slate-200/80 min-w-0">
+                <div class="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center flex-shrink-0 border border-rose-100 animate-fade-in">
+                  <i class="fa-solid fa-circle-chevron-up text-[20px]"></i>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 truncate">Pengeluaran</p>
+                  <h3 id="total-expense" class="mono-font text-base sm:text-lg lg:text-base xl:text-lg font-bold text-rose-600 tracking-tight break-all leading-snug">Rp 0</h3>
+                </div>
+              </div>
+
+            </section>
+
+            <!-- PROPORSIONAL KATEGORI & STATISTICS WIDGET -->
+            <section id="category-stats-card" class="bg-white p-6 rounded-3xl border border-slate-150/45 shadow-lg hidden">
+              <div class="flex items-center justify-between mb-5 select-none">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-2.5 h-6 bg-indigo-650 rounded-full inline-block animate-pulse"></span>
+                  <h2 class="brand-font text-lg font-bold text-slate-800">Distribusi Pengeluaran</h2>
+                </div>
+                <span class="mono-font text-[9px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider bg-slate-50 border border-slate-100 text-slate-500">
+                  Analisis Kategori
+                </span>
+              </div>
+              
+              <div id="category-bars" class="space-y-4">
+                <!-- Progress bars will be filled here dynamically -->
+              </div>
+            </section>
+
+            <!-- DAFTAR RIWAYAT TRANSAKSI / MUTASI REKENING MODERN -->
+            <section class="bg-white p-6 rounded-3xl border border-slate-150/45 shadow-lg">
+              
+              <!-- Header Riwayat, Pencarian & Filter Kolom -->
+              <div class="mb-6 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div class="flex items-center gap-2.5">
+                    <span class="w-2.5 h-6 bg-slate-900 rounded-full inline-block"></span>
+                    <h2 class="brand-font text-lg font-bold text-slate-800">Mutasi Rekening</h2>
+                  </div>
+                  
+                  <!-- Pencarian Transaksi -->
+                  <div class="relative w-full sm:w-64">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3.5 text-slate-400 pointer-events-none">
+                      <i class="fa-solid fa-magnifying-glass text-xs"></i>
+                    </span>
+                    <input type="text" id="search-input" placeholder="Cari nama kategori / catatan..." class="w-full pl-9 pr-4 py-2.5 bg-slate-50 border border-slate-150 rounded-xl font-medium text-xs text-slate-705 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 focus:bg-white transition-all" />
+                  </div>
+                </div>
+
+                <!-- Quick Filter Berdasarkan Tipe -->
+                <div class="flex p-1 bg-slate-50 border border-slate-150/80 rounded-xl">
+                  <button type="button" id="filter-all" class="flex-1 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white shadow-sm transition-all duration-200 cursor-pointer text-center">
+                    Semua
+                  </button>
+                  <button type="button" id="filter-income" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all duration-200 cursor-pointer text-center">
+                    Masuk
+                  </button>
+                  <button type="button" id="filter-expense" class="flex-1 py-2 text-xs font-bold rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800 transition-all duration-200 cursor-pointer text-center">
+                    Keluar
+                  </button>
+                </div>
+              </div>
+
+              <!-- Wadah List Items Transaksi -->
+              <div id="transaction-list" class="space-y-3.5 max-h-[500px] overflow-y-auto pr-1">
+                <div class="flex flex-col items-center justify-center py-10 px-4 text-center text-slate-400">
+                  <div class="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mb-3">
+                    <i class="fa-solid fa-spinner fa-spin text-lg text-indigo-550"></i>
+                  </div>
+                  <p class="brand-font text-xs font-semibold text-slate-500">Menarik data transaksi mutasi...</p>
+                </div>
+              </div>
+
+            </section>
+
+          </main>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="mt-12 text-center py-6 border-t border-slate-200/50">
+          <p class="text-[11px] text-slate-400 font-bold tracking-wide flex justify-center items-center gap-1.5 uppercase brand-font">
+            <span>© DompetKu by Harun</span>
+          </p>
+        </footer>
+
+      </div>
+    </div>
+
+    <!-- CUSTOM DIALOG MODAL FOR CONFIRMATIONS (PREMIUM COGNITIVE UI DIALOG) -->
+    <div id="custom-confirm-modal" class="hidden fixed inset-0 bg-slate-950/40 backdrop-blur-xs flex items-center justify-center z-50 p-4 transition-all duration-300">
+      <div class="bg-white rounded-[28px] border border-slate-100 shadow-2xl w-full max-w-sm p-6 transform transition-all scale-100 animate-in fade-in zoom-in-95 duration-200">
+        <div class="flex items-center gap-3.5 mb-3">
+          <div id="confirm-modal-icon-bg" class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-rose-50 text-rose-600">
+            <i id="confirm-modal-icon" class="fa-solid fa-circle-question text-lg"></i>
+          </div>
+          <h3 id="confirm-modal-title" class="brand-font font-bold text-slate-900 text-sm md:text-base">Konfirmasi Keluar</h3>
+        </div>
+        
+        <p id="confirm-modal-message" class="text-xs text-slate-500 font-medium leading-relaxed mb-6">Apakah Anda yakin dengan tindakan ini?</p>
+        
+        <div class="flex gap-2.5">
+          <button id="confirm-modal-cancel" class="flex-1 py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-all uppercase tracking-wider cursor-pointer">
+            Batal
+          </button>
+          <button id="confirm-modal-submit" class="flex-1 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow-md transition-all uppercase tracking-wider cursor-pointer">
+            Keluarkan
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST BANNERS FOR PREMIUM RESPONSIVE CLIENT FEEDBACKS -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2.5 max-w-sm w-full px-4 sm:px-0"></div>
+
+    <!-- Menghubungkan logika eksternal menggunakan Module bundler Vite -->
+    <script type="module" src="/src/app.js"></script>
+  </body>
+</html>

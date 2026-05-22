@@ -1,0 +1,54 @@
+{
+  "entities": {
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Pencatat transaksi keuangan pribadi",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID unik transaksi"
+        },
+        "userId": {
+          "type": "string",
+          "description": "UID pengguna pemilik transaksi"
+        },
+        "type": {
+          "type": "string",
+          "description": "income atau expense"
+        },
+        "category": {
+          "type": "string",
+          "description": "Kategori transaksi"
+        },
+        "amount": {
+          "type": "number",
+          "description": "Nominal transaksi"
+        },
+        "date": {
+          "type": "string",
+          "description": "Tanggal transaksi format YYYY-MM-DD"
+        },
+        "description": {
+          "type": "string",
+          "description": "Catatan tambahan transaksi"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Waktu pembuatan transaksi"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Waktu pembaruan transaksi"
+        }
+      },
+      "required": ["id", "userId", "type", "category", "amount", "date", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "Koleksi transaksi keuangan pengguna"
+    }
+  }
+}
