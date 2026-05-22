@@ -1,10 +1,9 @@
 {
-  "projectId": "dompetku-digital",
-  "appId": "1:619454407644:web:3b5426984097f702cfa519",
-  "apiKey": "AIzaSyAS2MwClX8aPiOpKVHjn2Ikb46lLYkb61k",
-  "authDomain": "dompetku-digital.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
-  "storageBucket": "dompetku-digital.firebasestorage.app",
-  "messagingSenderId": "619454407644",
-  "measurementId": "G-PGXBWET10E"
+  apiKey: "AIzaSyAS2MwClX8aPiOpKVHjn2Ikb461LYkb61k",
+  authDomain: "dompetku-digital.firebaseapp.com",
+  projectId: "dompetku-digital",
+  storageBucket: "dompetku-digital.firebasestorage.app",
+  messagingSenderId: "619454407644",
+  appId: "1:619454407644:web:3b5426984097f702cfa519",
+  measurementId: "G-PGXBWET10E"
 }
