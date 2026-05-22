@@ -459,7 +459,7 @@ function renderTransactions() {
             <p class="text-xs text-slate-400 font-semibold">${formatTanggal(t.date)}</p>
             ${t.description ? `
               <span class="hidden sm:inline-block w-1 h-1 bg-slate-300 rounded-full"></span>
-              <p class="text-xs text-slate-500 font-medium truncate max-w-[200px] sm:max-w-[150px] md:max-w-[220px] lg:max-w-[260px] xl:max-w-[340px]" title="${t.description}">${t.description}</p>
+              <p class="hidden sm:inline-block text-xs text-slate-500 font-medium truncate max-w-[200px] sm:max-w-[150px] md:max-w-[220px] lg:max-w-[260px] xl:max-w-[340px]" title="${t.description}">${t.description}</p>
             ` : ''}
           </div>
           <!-- Show description inline on mobile layout if present -->
@@ -1121,6 +1121,7 @@ async function handleGoogleLogin() {
   }
 }
 
+
 async function handleLogout() {
   showCustomConfirm({
     title: 'Konfirmasi Keluar',
@@ -1226,13 +1227,13 @@ document.addEventListener('DOMContentLoaded', () => {
           mobileTabDashboard.className = 'flex-1 py-3 text-xs font-bold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
         }
         if (mobileTabForm) {
-          mobileTabForm.className = 'flex-1 py-3 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-850 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
+          mobileTabForm.className = 'flex-1 py-3 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-800 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
         }
       } else {
         if (asidePanel) asidePanel.classList.remove('hidden');
         if (mainPanel) mainPanel.classList.add('hidden');
         if (mobileTabDashboard) {
-          mobileTabDashboard.className = 'flex-1 py-3 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-850 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
+          mobileTabDashboard.className = 'flex-1 py-3 text-xs font-bold rounded-xl text-slate-500 hover:text-slate-800 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
         }
         if (mobileTabForm) {
           mobileTabForm.className = 'flex-1 py-3 text-xs font-bold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer';
@@ -1306,6 +1307,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     textSubdate.textContent = new Intl.DateTimeFormat('id-ID', options).format(new Date());
   }
+
 
   // Lakukan tes sambungan awal luring/daring ke Firestore
   testConnection();
