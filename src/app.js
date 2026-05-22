@@ -79,6 +79,7 @@ async function testConnection() {
 let transactions = [];
 let editingId = null;
 let queryUnsubscribe = null;
+let isGuestMode = false;
 
 // Kategori transaksi yang tersedia berdasarkan tipe
 const CATEGORIES = {
@@ -475,7 +476,7 @@ function resetForm() {
 async function handleFormSubmit(e) {
   e.preventDefault();
 
-  if (!auth.currentUser) {
+  if (!auth.currentUser && !isGuestMode) {
     showToast('Oops! Sesi Anda berakhir. Silakan hubungkan kembali akun Google Anda.', 'warning');
     return;
   }
@@ -507,9 +508,61 @@ async function handleFormSubmit(e) {
   submitBtn.disabled = true;
   submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i>Menyimpan...';
 
+  if (isGuestMode) {
+    if (editingId) {
+      // Mode Update (Guest)
+      const idx = transactions.findIndex(t => t.id === editingId);
+      if (idx !== -1) {
+        transactions[idx] = {
+          ...transactions[idx],
+          type: typeValue,
+          category: categoryValue,
+          amount: amountValue,
+          date: dateValue,
+          description: descriptionValue,
+          updatedAt: new Date().toISOString()
+        };
+      }
+      localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+      showToast('Transaksi (Tamu) berhasil diperbarui secara lokal!', 'success');
+      resetForm();
+      const mobileTabDashboard = document.getElementById('mobile-tab-dashboard');
+      if (mobileTabDashboard && window.innerWidth < 768) {
+        mobileTabDashboard.click();
+      }
+      updateDashboard();
+      renderTransactions();
+    } else {
+      // Mode Create (Guest)
+      const customId = `trx-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
+      const payload = {
+        id: customId,
+        userId: 'guest',
+        type: typeValue,
+        category: categoryValue,
+        amount: amountValue,
+        date: dateValue,
+        description: descriptionValue,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      transactions.unshift(payload);
+      localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+      showToast('Catatan transaksi (Tamu) berhasil disimpan secara lokal!', 'success');
+      resetForm();
+      const mobileTabDashboard = document.getElementById('mobile-tab-dashboard');
+      if (mobileTabDashboard && window.innerWidth < 768) {
+        mobileTabDashboard.click();
+      }
+      updateDashboard();
+      renderTransactions();
+    }
+    submitBtn.disabled = false;
+    return;
+  }
+
   if (editingId) {
-    // Mode Update
-    const currentTrx = transactions.find(t => t.id === editingId);
+    // Mode Update (Firebase)
     const docRef = doc(db, 'transactions', String(editingId));
     
     const payload = {
@@ -535,7 +588,7 @@ async function handleFormSubmit(e) {
       handleFirestoreError(error, OperationType.UPDATE, `transactions/${editingId}`);
     }
   } else {
-    // Mode Create
+    // Mode Create (Firebase)
     const customId = `trx-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`;
     const docRef = doc(db, 'transactions', customId);
 
@@ -608,9 +661,13 @@ window.deleteTransaction = function(id) {
   const trx = transactions.find(t => t.id === targetId);
   if (!trx) return;
 
+  const confirmMsg = isGuestMode 
+    ? `Apakah Anda yakin ingin menghapus transaksi "${trx.category}" senilai ${formatRupiah(trx.amount)} dari penyimpanan lokal browser?`
+    : `Apakah Anda yakin ingin menghapus transaksi "${trx.category}" senilai ${formatRupiah(trx.amount)} dari Cloud Firestore?`;
+
   showCustomConfirm({
     title: 'Hapus Transaksi',
-    message: `Apakah Anda yakin ingin menghapus transaksi "${trx.category}" senilai ${formatRupiah(trx.amount)} dari Cloud Firestore?`,
+    message: confirmMsg,
     iconClass: 'fa-regular fa-trash-can text-lg',
     iconBgClass: 'bg-rose-50 text-rose-600 border border-rose-100',
     submitText: 'Hapus',
@@ -618,6 +675,15 @@ window.deleteTransaction = function(id) {
     onConfirm: async () => {
       if (editingId === targetId) {
         resetForm();
+      }
+
+      if (isGuestMode) {
+        transactions = transactions.filter(t => t.id !== targetId);
+        localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+        showToast('Transaksi berhasil dihapus secara lokal!', 'success');
+        updateDashboard();
+        renderTransactions();
+        return;
       }
 
       const docRef = doc(db, 'transactions', targetId);
@@ -643,8 +709,8 @@ function downloadPDFSummary() {
   });
 
   const currentUser = auth.currentUser;
-  const userNameVal = currentUser ? (currentUser.displayName || 'Pengguna DompetKu') : 'Pengguna DompetKu';
-  const userEmailVal = currentUser ? (currentUser.email || '-') : '-';
+  const userNameVal = isGuestMode ? 'Mode Tamu DompetKu' : (currentUser ? (currentUser.displayName || 'Pengguna DompetKu') : 'Pengguna DompetKu');
+  const userEmailVal = isGuestMode ? 'mode.tamu@dompetku.local' : (currentUser ? (currentUser.email || '-') : '-');
   const dateStr = new Intl.DateTimeFormat('id-ID', {
     weekday: 'long',
     year: 'numeric',
@@ -1016,22 +1082,102 @@ function showCustomConfirm({ title, message, iconClass, iconBgClass, submitText,
   });
 }
 
+function showAuthInstructionsModal() {
+  const modal = document.getElementById('auth-instructions-modal');
+  const domainText1 = document.getElementById('modal-trouble-domain');
+  const domainText2 = document.getElementById('modal-trouble-domain-copy');
+  const closeBtn = document.getElementById('auth-instructions-close');
+
+  if (!modal) return;
+
+  const currentHost = window.location.hostname;
+  if (domainText1) domainText1.textContent = currentHost;
+  if (domainText2) domainText2.textContent = currentHost;
+
+  modal.classList.remove('hidden');
+
+  closeBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  }, { once: true });
+}
+
 async function handleGoogleLogin() {
   try {
     loadingScreen.classList.remove('hidden');
     appScreen.classList.add('hidden');
     authScreen.classList.add('hidden');
     
-    // Semburat login popup
+    // Memulai login popup menggunakan Google Provider
     await signInWithPopup(auth, googleProvider);
   } catch (err) {
     loadingScreen.classList.add('hidden');
     authScreen.classList.remove('hidden');
     console.error("Login gagal: ", err);
+
+    const errorCode = err.code;
+
+    if (errorCode === 'auth/unauthorized-domain') {
+      showAuthInstructionsModal();
+    } else if (errorCode === 'auth/popup-blocked') {
+      showToast('Pop-up masuk diblokir oleh browser Anda. Silakan izinkan pop-up untuk situs ini dan coba lagi.', 'warning');
+    } else if (errorCode === 'auth/popup-closed-by-user') {
+      showToast('Login dibatalkan oleh pengguna.', 'warning');
+    } else {
+      // Jika terjadi kesalahan lain pada domain yang dideploy (misal Vercel), tampilkan panduan Authorized Domains
+      const currentHost = window.location.hostname;
+      const isLocalOrFirebase = currentHost === 'localhost' || 
+                                currentHost === '127.0.0.1' || 
+                                currentHost.endsWith('.firebaseapp.com') || 
+                                currentHost.endsWith('.web.app');
+      
+      if (!isLocalOrFirebase) {
+        showAuthInstructionsModal();
+      } else {
+        showToast('Gagal masuk: ' + (err.message || 'masalah jaringan atau setelan browser'), 'danger');
+      }
+    }
   }
 }
 
 async function handleLogout() {
+  if (isGuestMode) {
+    showCustomConfirm({
+      title: 'Keluar Mode Tamu',
+      message: 'Apakah Anda yakin ingin keluar dari Mode Tamu? Semua data Anda tetap aman berada di dalam browser ini.',
+      iconClass: 'fa-solid fa-power-off text-lg',
+      iconBgClass: 'bg-rose-50 text-rose-600 border border-rose-100',
+      submitText: 'Keluar',
+      submitBtnBgClass: 'bg-slate-900 hover:bg-slate-800 active:scale-95',
+      onConfirm: () => {
+        loadingScreen.classList.remove('hidden');
+        setTimeout(() => {
+          isGuestMode = false;
+          localStorage.removeItem('dompetku_is_guest');
+          transactions = [];
+          
+          const syncStatus = document.getElementById('sync-status');
+          const syncDot = document.getElementById('sync-status-dot');
+          if (syncStatus) {
+            syncStatus.className = 'text-[10px] text-indigo-600 font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-1';
+            syncStatus.querySelector('span:not(#sync-status-dot)').textContent = 'Jejak Finansialku';
+          }
+          if (syncDot) {
+            syncDot.className = 'w-1.5 h-1.5 bg-indigo-500 rounded-full inline-block animate-pulse';
+          }
+          
+          updateDashboard();
+          renderTransactions();
+          
+          appScreen.classList.add('hidden');
+          authScreen.classList.remove('hidden');
+          loadingScreen.classList.add('hidden');
+          showToast('Anda berhasil keluar dari Mode Tamu.', 'success');
+        }, 400);
+      }
+    });
+    return;
+  }
+
   showCustomConfirm({
     title: 'Konfirmasi Keluar',
     message: 'Apakah Anda yakin ingin keluar dari akun Google di DompetKu?',
@@ -1098,6 +1244,54 @@ document.addEventListener('DOMContentLoaded', () => {
   // Event listener tombol login/logout
   loginBtn.addEventListener('click', handleGoogleLogin);
   logoutBtn.addEventListener('click', handleLogout);
+
+  const guestLoginBtn = document.getElementById('guest-login-btn');
+  if (guestLoginBtn) {
+    guestLoginBtn.addEventListener('click', () => {
+      loadingScreen.classList.remove('hidden');
+      setTimeout(() => {
+        isGuestMode = true;
+        localStorage.setItem('dompetku_is_guest', 'true');
+
+        // Set user UI
+        userAvatar.src = 'https://www.gravatar.com/avatar/?d=mp';
+        userName.textContent = 'Mode Tamu DompetKu';
+
+        // Update sync-status badge visual
+        const syncStatus = document.getElementById('sync-status');
+        const syncDot = document.getElementById('sync-status-dot');
+        if (syncStatus) {
+          syncStatus.className = 'text-[10px] text-amber-600 font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-1';
+          const spanLabel = syncStatus.querySelector('span:not(#sync-status-dot)');
+          if (spanLabel) spanLabel.textContent = 'Mode Tamu (Offline)';
+        }
+        if (syncDot) {
+          syncDot.className = 'w-1.5 h-1.5 bg-amber-500 rounded-full inline-block animate-pulse';
+        }
+
+        // Load transactions
+        const stored = localStorage.getItem('dompetku_guest_transactions');
+        if (stored) {
+          try {
+            transactions = JSON.parse(stored);
+          } catch(e) {
+            transactions = [];
+          }
+        } else {
+          transactions = [];
+        }
+
+        authScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        loadingScreen.classList.add('hidden');
+
+        resetForm();
+        updateDashboard();
+        renderTransactions();
+        showToast('Berhasil masuk menggunakan Mode Tamu Offline!', 'success');
+      }, 405);
+    });
+  }
 
   // Setup dropdown kategori & event listeners form
   radioIncome.addEventListener('change', updateCategoryDropdown);
@@ -1223,6 +1417,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Memasang pemantau state autentikasi pengguna secara dinamis
   onAuthStateChanged(auth, (user) => {
     if (user) {
+      isGuestMode = false;
+      localStorage.removeItem('dompetku_is_guest');
+
+      const syncStatus = document.getElementById('sync-status');
+      const syncDot = document.getElementById('sync-status-dot');
+      if (syncStatus) {
+        syncStatus.className = 'text-[10px] text-indigo-600 font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-1';
+        const spanLabel = syncStatus.querySelector('span:not(#sync-status-dot)');
+        if (spanLabel) spanLabel.textContent = 'Jejak Finansialku';
+      }
+      if (syncDot) {
+        syncDot.className = 'w-1.5 h-1.5 bg-indigo-500 rounded-full inline-block animate-pulse';
+      }
+
       // Perbarui profile avatar & info
       userAvatar.src = user.photoURL || 'https://www.gravatar.com/avatar/?d=mp';
       userName.textContent = user.displayName || 'Pengguna DompetKu';
@@ -1257,6 +1465,45 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
     } else {
+      // Jika ada status login tamu sebelumnya, pulihkan secara offline
+      if (localStorage.getItem('dompetku_is_guest') === 'true') {
+        isGuestMode = true;
+        
+        userAvatar.src = 'https://www.gravatar.com/avatar/?d=mp';
+        userName.textContent = 'Mode Tamu DompetKu';
+
+        const syncStatus = document.getElementById('sync-status');
+        const syncDot = document.getElementById('sync-status-dot');
+        if (syncStatus) {
+          syncStatus.className = 'text-[10px] text-amber-600 font-bold uppercase tracking-widest flex items-center justify-center md:justify-start gap-1';
+          const spanLabel = syncStatus.querySelector('span:not(#sync-status-dot)');
+          if (spanLabel) spanLabel.textContent = 'Mode Tamu (Offline)';
+        }
+        if (syncDot) {
+          syncDot.className = 'w-1.5 h-1.5 bg-amber-500 rounded-full inline-block animate-pulse';
+        }
+
+        const stored = localStorage.getItem('dompetku_guest_transactions');
+        if (stored) {
+          try {
+            transactions = JSON.parse(stored);
+          } catch(e) {
+            transactions = [];
+          }
+        } else {
+          transactions = [];
+        }
+
+        authScreen.classList.add('hidden');
+        appScreen.classList.remove('hidden');
+        loadingScreen.classList.add('hidden');
+
+        resetForm();
+        updateDashboard();
+        renderTransactions();
+        return;
+      }
+
       // Jika logout, bersihkan token dan batalkan sync database
       if (queryUnsubscribe) {
         queryUnsubscribe();
