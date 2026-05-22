@@ -48,15 +48,15 @@ service cloud.firestore {
       allow create: if isSignedIn() 
         && isValidId(transactionId)
         && isValidTransaction(incoming())
-        && (incoming().createdAt is timestamp || incoming().createdAt == request.time)
-        && (incoming().updatedAt is timestamp || incoming().updatedAt == request.time);
+        && incoming().createdAt != null
+        && incoming().updatedAt != null;
         
       allow update: if isSignedIn()
         && isValidId(transactionId)
         && isOwner(existing().userId)
         && isValidTransaction(incoming())
         && incoming().createdAt == existing().createdAt
-        && (incoming().updatedAt is timestamp || incoming().updatedAt == request.time);
+        && incoming().updatedAt != null;
         
       allow delete: if isSignedIn() && isOwner(existing().userId);
     }
