@@ -1449,7 +1449,11 @@ document.addEventListener('DOMContentLoaded', () => {
       queryUnsubscribe = onSnapshot(q, (snapshot) => {
         transactions = [];
         snapshot.forEach((docSnap) => {
-          transactions.push(docSnap.data());
+          const data = docSnap.data();
+          if (!data.id) {
+            data.id = docSnap.id;
+          }
+          transactions.push(data);
         });
 
         // Mutakhirkan visual diagram & saring riwayat terkini

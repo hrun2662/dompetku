@@ -30,7 +30,7 @@ service cloud.firestore {
 
     function isValidTransaction(data) {
       return data.keys().hasAll(['id', 'userId', 'type', 'category', 'amount', 'date', 'createdAt', 'updatedAt'])
-        && (data.keys().size() == 8 || (data.keys().size() == 9 && data.keys().hasAll(['description'])))
+        && data.keys().size() >= 8 && data.keys().size() <= 11
         && data.id is string && data.id.size() <= 128
         && data.userId is string && data.userId == request.auth.uid
         && data.type is string && (data.type == 'income' || data.type == 'expense')
