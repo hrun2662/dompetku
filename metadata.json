@@ -1,6 +1,6 @@
 {
   "name": "Pencatat Keuangan Pribadi",
-  "description": "Aplikasi Pencatat Keuangan Pribadi (Expense Tracker) modern, responsif, dan mudah digunakan dengan penyimpanan LocalStorage.",
+  "description": "Aplikasi Pencatat Keuangan Pribadi (Expense Tracker) modern, responsif, dan mudah digunakan dengan sinkronisasi Cloud Firestore dan mode tamu lokal.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
