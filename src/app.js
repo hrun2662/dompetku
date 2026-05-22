@@ -29,6 +29,40 @@ import {
 } from 'firebase/firestore';
 
 // ==========================================
+// SAFE LOCAL STORAGE WRAPPER
+// ==========================================
+// Blocks unhandled SecurityError (DOMException) that typically crashes browsers
+// inside sandboxed iframe containers (like Google AI Studio preview)
+// when trying to read or write to standard localStorage under strict cookies/storage policies.
+const safeLocalStorage = {
+  _fallbackStorage: {},
+  getItem(key) {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn(`[SafeStorage] Access denied to getItem for key: "${key}". Using in-memory fallback.`, e);
+      return this._fallbackStorage[key] || null;
+    }
+  },
+  setItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn(`[SafeStorage] Access denied to setItem for key: "${key}". Using in-memory fallback.`, e);
+      this._fallbackStorage[key] = String(value);
+    }
+  },
+  removeItem(key) {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn(`[SafeStorage] Access denied to removeItem for key: "${key}". Using in-memory fallback.`, e);
+      delete this._fallbackStorage[key];
+    }
+  }
+};
+
+// ==========================================
 // TELEMETRI & PENANGANAN ERROR FIRESTORE
 // ==========================================
 const OperationType = {
@@ -523,7 +557,7 @@ async function handleFormSubmit(e) {
           updatedAt: new Date().toISOString()
         };
       }
-      localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+      safeLocalStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
       showToast('Transaksi (Tamu) berhasil diperbarui secara lokal!', 'success');
       resetForm();
       const mobileTabDashboard = document.getElementById('mobile-tab-dashboard');
@@ -547,7 +581,7 @@ async function handleFormSubmit(e) {
         updatedAt: new Date().toISOString()
       };
       transactions.unshift(payload);
-      localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+      safeLocalStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
       showToast('Catatan transaksi (Tamu) berhasil disimpan secara lokal!', 'success');
       resetForm();
       const mobileTabDashboard = document.getElementById('mobile-tab-dashboard');
@@ -679,7 +713,7 @@ window.deleteTransaction = function(id) {
 
       if (isGuestMode) {
         transactions = transactions.filter(t => t.id !== targetId);
-        localStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
+        safeLocalStorage.setItem('dompetku_guest_transactions', JSON.stringify(transactions));
         showToast('Transaksi berhasil dihapus secara lokal!', 'success');
         updateDashboard();
         renderTransactions();
@@ -1147,7 +1181,7 @@ async function handleLogout() {
         loadingScreen.classList.remove('hidden');
         setTimeout(() => {
           isGuestMode = false;
-          localStorage.removeItem('dompetku_is_guest');
+          safeLocalStorage.removeItem('dompetku_is_guest');
           transactions = [];
           
           const syncStatus = document.getElementById('sync-status');
@@ -1246,7 +1280,7 @@ document.addEventListener('DOMContentLoaded', () => {
       loadingScreen.classList.remove('hidden');
       setTimeout(() => {
         isGuestMode = true;
-        localStorage.setItem('dompetku_is_guest', 'true');
+        safeLocalStorage.setItem('dompetku_is_guest', 'true');
 
         // Set user UI
         userAvatar.src = 'https://www.gravatar.com/avatar/?d=mp';
@@ -1265,7 +1299,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Load transactions
-        const stored = localStorage.getItem('dompetku_guest_transactions');
+        const stored = safeLocalStorage.getItem('dompetku_guest_transactions');
         if (stored) {
           try {
             transactions = JSON.parse(stored);
@@ -1413,7 +1447,7 @@ document.addEventListener('DOMContentLoaded', () => {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       isGuestMode = false;
-      localStorage.removeItem('dompetku_is_guest');
+      safeLocalStorage.removeItem('dompetku_is_guest');
 
       const syncStatus = document.getElementById('sync-status');
       const syncDot = document.getElementById('sync-status-dot');
@@ -1465,7 +1499,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } else {
       // Jika ada status login tamu sebelumnya, pulihkan secara offline
-      if (localStorage.getItem('dompetku_is_guest') === 'true') {
+      if (safeLocalStorage.getItem('dompetku_is_guest') === 'true') {
         isGuestMode = true;
         
         userAvatar.src = 'https://www.gravatar.com/avatar/?d=mp';
@@ -1482,7 +1516,7 @@ document.addEventListener('DOMContentLoaded', () => {
           syncDot.className = 'w-1.5 h-1.5 bg-amber-500 rounded-full inline-block animate-pulse';
         }
 
-        const stored = localStorage.getItem('dompetku_guest_transactions');
+        const stored = safeLocalStorage.getItem('dompetku_guest_transactions');
         if (stored) {
           try {
             transactions = JSON.parse(stored);
