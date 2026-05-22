@@ -1086,6 +1086,7 @@ function showAuthInstructionsModal() {
   const modal = document.getElementById('auth-instructions-modal');
   const domainText1 = document.getElementById('modal-trouble-domain');
   const domainText2 = document.getElementById('modal-trouble-domain-copy');
+  const domainTextRaw = document.getElementById('modal-trouble-domain-raw');
   const closeBtn = document.getElementById('auth-instructions-close');
 
   if (!modal) return;
@@ -1093,6 +1094,7 @@ function showAuthInstructionsModal() {
   const currentHost = window.location.hostname;
   if (domainText1) domainText1.textContent = currentHost;
   if (domainText2) domainText2.textContent = currentHost;
+  if (domainTextRaw) domainTextRaw.textContent = currentHost;
 
   modal.classList.remove('hidden');
 
@@ -1115,26 +1117,19 @@ async function handleGoogleLogin() {
     console.error("Login gagal: ", err);
 
     const errorCode = err.code;
+    const errorMessage = err.message || '';
 
-    if (errorCode === 'auth/unauthorized-domain') {
+    if (errorCode === 'auth/unauthorized-domain' || 
+        errorMessage.toLowerCase().includes('unauthorized domain') || 
+        errorMessage.toLowerCase().includes('unauthorized-domain')) {
       showAuthInstructionsModal();
     } else if (errorCode === 'auth/popup-blocked') {
       showToast('Pop-up masuk diblokir oleh browser Anda. Silakan izinkan pop-up untuk situs ini dan coba lagi.', 'warning');
     } else if (errorCode === 'auth/popup-closed-by-user') {
       showToast('Login dibatalkan oleh pengguna.', 'warning');
     } else {
-      // Jika terjadi kesalahan lain pada domain yang dideploy (misal Vercel), tampilkan panduan Authorized Domains
-      const currentHost = window.location.hostname;
-      const isLocalOrFirebase = currentHost === 'localhost' || 
-                                currentHost === '127.0.0.1' || 
-                                currentHost.endsWith('.firebaseapp.com') || 
-                                currentHost.endsWith('.web.app');
-      
-      if (!isLocalOrFirebase) {
-        showAuthInstructionsModal();
-      } else {
-        showToast('Gagal masuk: ' + (err.message || 'masalah jaringan atau setelan browser'), 'danger');
-      }
+      // Tampilkan pesan error sesungguhnya agar pengguna tahu letak kesalahan (missal pengetikan domain, key, dll)
+      showToast(`Gagal masuk (${errorCode || 'Error'}): ${errorMessage || 'Masalah jaringan atau setelan browser'}`, 'danger');
     }
   }
 }

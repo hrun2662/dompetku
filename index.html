@@ -429,12 +429,16 @@
           <p>Karena website Anda di-host di domain baru (<span id="modal-trouble-domain" class="font-mono text-[11px] bg-white px-2 py-0.5 rounded-md border border-slate-200 text-indigo-650 font-bold select-all">vercel.app</span>), Firebase memblokir sistem login Google demi keamanan sebelum domain baru ini didaftarkan.</p>
           
           <p class="font-bold text-slate-800 mt-2">Cara mudah menyelesaikannya di Firebase:</p>
-          <ol class="list-decimal pl-4.5 space-y-2 text-slate-600">
+          <ol class="list-decimal pl-4.5 space-y-2.5 text-slate-600">
             <li>Buka <a href="https://console.firebase.google.com" target="_blank" referrerpolicy="no-referrer" class="text-indigo-600 font-bold hover:underline">Firebase Console <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i></a> Anda.</li>
             <li>Pilih proyek Anda, lalu buka menu <strong class="text-slate-800">Authentication</strong> di sebelah kiri.</li>
             <li>Klik tab <strong class="text-slate-800">Settings</strong> (atau klik Setelan).</li>
             <li>Di bawah bagian <strong class="text-slate-800">Authorized domains</strong> (Domain Resmi), klik tombol <strong class="text-slate-800">Add domain</strong>.</li>
             <li>Masukkan domain Anda: <strong class="font-mono bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded border border-indigo-150 select-all" id="modal-trouble-domain-copy">vercel.app</strong> lalu klik <strong class="text-slate-800">Add</strong>.</li>
+            <li class="list-none mt-1.5 text-rose-600 font-bold bg-rose-50 p-2.5 rounded-xl border border-rose-100 flex items-start gap-1.5 text-[11px] leading-normal">
+              <i class="fa-solid fa-triangle-exclamation mt-0.5 flex-shrink-0 text-xs"></i>
+              <span>PENTING: Masukkan domain di atas persis APA ADANYA. JANGAN gunakan awalan <code class="bg-white px-1 py-0.2 rounded border border-rose-200 select-all font-mono">https://</code> ataupun akhiran garis miring <code class="bg-white px-1 py-0.2 rounded border border-rose-200 select-all font-mono">/</code>! Tulis murni: <strong id="modal-trouble-domain-raw" class="font-mono bg-white px-1 py-0.5 rounded border border-slate-350 select-all">vercel.app</strong></span>
+            </li>
           </ol>
           <p class="text-[10px] text-amber-600 font-semibold mt-2.5 flex items-start gap-1">
             <i class="fa-solid fa-circle-info mt-0.5"></i>
