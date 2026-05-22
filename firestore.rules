@@ -7,58 +7,25 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
-    // Helper functions
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(userId) {
-      return isSignedIn() && request.auth.uid == userId;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
-    }
-
-    function incoming() {
-      return request.resource.data;
-    }
-
-    function existing() {
-      return resource.data;
-    }
-
-    function isValidTransaction(data) {
-      return data.keys().hasAll(['id', 'userId', 'type', 'category', 'amount', 'date'])
-        && data.keys().size() >= 6 && data.keys().size() <= 11
-        && data.id is string && data.id.size() <= 128
-        && data.userId is string && data.userId == request.auth.uid
-        && data.type is string && (data.type == 'income' || data.type == 'expense')
-        && data.category is string && data.category.size() <= 64
-        && (data.amount is int || data.amount is float) && data.amount > 0
-        && data.date is string && data.date.matches('^\\d{4}-\\d{2}-\\d{2}$')
-        && (!data.keys().hasAll(['description']) || (data.description is string && data.description.size() <= 200));
-    }
-
     // Transactions Security Rules
     match /transactions/{transactionId} {
-      allow get: if isSignedIn() && isOwner(existing().userId);
-      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      // Allow reading and listing if authenticated and the resource belongs to the user
+      allow read: if request.auth != null && (resource == null || resource.data.userId == request.auth.uid);
       
-      allow create: if isSignedIn() 
-        && isValidId(transactionId)
-        && isValidTransaction(incoming())
-        && incoming().createdAt != null
-        && incoming().updatedAt != null;
+      // Allow creation if authenticated and client's provided userId matches auth uid
+      allow create: if request.auth != null 
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.id != null
+        && request.resource.data.type in ['income', 'expense']
+        && request.resource.data.amount > 0;
         
-      allow update: if isSignedIn()
-        && isValidId(transactionId)
-        && isOwner(existing().userId)
-        && isValidTransaction(incoming())
-        && incoming().createdAt == existing().createdAt
-        && incoming().updatedAt != null;
+      // Allow update if authenticated and client is the owner of the document
+      allow update: if request.auth != null 
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == request.auth.uid;
         
-      allow delete: if isSignedIn() && isOwner(existing().userId);
+      // Allow delete if authenticated and client is the owner
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
   }
 }

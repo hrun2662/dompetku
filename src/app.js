@@ -90,6 +90,23 @@ function handleFirestoreError(error, operationType, path) {
     path
   };
   console.error('Firestore Error Payload: ', JSON.stringify(errInfo));
+  
+  // Deteksi jika terdapat masalah izin/aturan Firestore (seperti pada project Firebase baru yang belum dikonfigurasi)
+  const errMsg = errInfo.error.toLowerCase();
+  if (
+    errMsg.includes('permission') || 
+    errMsg.includes('insufficient') || 
+    errMsg.includes('unauthorized') || 
+    errMsg.includes('missing-permission') ||
+    errMsg.includes('not-found') ||
+    errMsg.includes('database')
+  ) {
+    const warningBanner = document.getElementById('firebase-setup-warning');
+    if (warningBanner) {
+      warningBanner.classList.remove('hidden');
+    }
+  }
+
   showToast('Gagal menyinkronkan data dengan cloud. Pastikan koneksi internet stabil dan rules database mengizinkan.', 'danger');
   throw new Error(JSON.stringify(errInfo));
 }

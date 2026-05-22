@@ -125,6 +125,34 @@
           </div>
         </header>
 
+        <!-- DETECTED FIREBASE SETUP ISSUE BANNER -->
+        <div id="firebase-setup-warning" class="hidden mb-8 p-6 bg-amber-50 border border-amber-200 rounded-3xl animate-fade-in text-left">
+          <div class="flex items-start gap-4">
+            <span class="flex items-center justify-center bg-amber-100 text-amber-800 w-11 h-11 rounded-2xl flex-shrink-0 shadow-sm border border-amber-200">
+              <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+            </span>
+            <div class="flex-1">
+              <h2 class="brand-font text-sm font-bold text-slate-900">Perhatian: Sinkronisasi Database Ditolak (Belum Siap)</h2>
+              <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                Aplikasi mendeteksi error sinkronisasi dengan Cloud Firestore milik Anda. Karena Anda menggunakan project Firebase sendiri, pastikan Anda telah menyelesaikan langkah-langkah wajib berikut:
+              </p>
+              <ul class="list-disc pl-5 text-xs text-slate-650 mt-2.5 space-y-1.5">
+                <li><strong>Membuat Database Firestore:</strong> Silakan buka Firebase Console Anda, masuk ke menu <strong>Firestore Database</strong>, klik <strong>Create Database</strong> (pastikan menggunakan ID database <code class="bg-amber-150/80 px-1 py-0.5 rounded font-mono font-bold text-[10px] text-amber-900">(default)</code>).</li>
+                <li><strong>Mengonfigurasi Security Rules:</strong> Salin isi file <code class="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-[10px] text-slate-800">firestore.rules</code> yang ada di folder project ini, lalu tempelkan di tab <strong>Rules</strong> pada Firestore Database di Firebase Console Anda, kemudian klik <strong>Publish</strong>.</li>
+                <li><strong>Aktifkan Google Authentication:</strong> Pastikan Anda telah mengaktifkan <strong>Google</strong> sign-in provider di tab <strong>Authentication -> Sign-in method</strong> pada Firebase Console Anda agar login tersinkronisasi sempurna pada berbagai perangkat.</li>
+              </ul>
+              <div class="mt-4.5 flex flex-wrap items-center gap-2">
+                <a href="https://console.firebase.google.com/" target="_blank" rel="noopener noreferrer" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-colors inline-flex items-center gap-1.5 shadow-sm shadow-amber-650/15">
+                  <i class="fa-solid fa-arrow-up-right-from-square"></i> Buka Firebase Console
+                </a>
+                <button onclick="document.getElementById('firebase-setup-warning').classList.add('hidden')" class="px-3.5 py-2 bg-white border border-amber-200 text-amber-800 hover:bg-amber-100 rounded-xl text-xs font-bold transition-colors cursor-pointer">
+                  Tutup Peringatan
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- MOBILE VIEW SWITCHER PILL (Only visible on screens < md) -->
         <div id="mobile-tab-bar" class="md:hidden mb-6 p-1 bg-slate-100/80 border border-slate-250/50 rounded-2xl flex relative z-10 transition-all duration-300">
           <button id="mobile-tab-dashboard" class="flex-1 py-3 text-xs font-bold rounded-xl bg-slate-900 text-white shadow-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer">
